@@ -1,25 +1,30 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import MenuPrincipal from "./components/MenuPrincipal";
+import DiscretosNaoAgrupados from "./components/DiscretosNaoAgrupados";
+import DiscretosAgrupados from "./components/DiscretosAgrupados";
+import Continuos from "./components/Continuos";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const App = React.memo(() => {
+	const [tela, setTela] = useState("menu");
+
+	const renderizarTela = () => {
+		switch (tela) {
+			case "discretos-nao-agrupados":
+				return <DiscretosNaoAgrupados onVoltar={() => setTela("menu")} />;
+			case "discretos-agrupados":
+				return <DiscretosAgrupados onVoltar={() => setTela("menu")} />;
+			case "continuos":
+				return <Continuos onVoltar={() => setTela("menu")} />
+			default:
+				return <MenuPrincipal onSelecionar={setTela} />;
+		}
+	};
+	return (
+		<div className="min-h-screen text-black bg-gray-100 p-4">
+			<h1 className="text-3xl font-bold text-center mb-6">Estatística Aplicada</h1>
+			{renderizarTela()}
+		</div>
+	);
+})
 
 export default App;
