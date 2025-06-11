@@ -36,30 +36,36 @@ export default function DiscretosAgrupados({ onVoltar }) {
 
   const calcular = () => {
     if (!validarEntradas()) return;
-
+  
     const filtrados = dados.filter(d => !isNaN(d.valor) && !isNaN(d.frequencia));
     const n = filtrados.reduce((acc, d) => acc + d.frequencia, 0);
-
+  
     const ordenados = [...filtrados].sort((a, b) => a.valor - b.valor);
-
+  
     let acumulada = 0;
     const dist = ordenados.map((d) => {
       acumulada += d.frequencia;
       return { ...d, acumulada };
     });
-
+  
     const metade = n / 2;
     const classeMediana = dist.find(d => d.acumulada >= metade);
     const mediana = classeMediana.valor;
-
+  
     const media = filtrados.reduce((acc, d) => acc + d.valor * d.frequencia, 0) / n;
-
-    const variancia =
-      filtrados.reduce((acc, d) => acc + d.frequencia * Math.pow(d.valor - media, 2), 0) / n;
+  
+    const somaQuadrados = filtrados.reduce((acc, d) => {
+      const diff = d.valor - media;
+      return acc + d.frequencia * Math.pow(diff, 2);
+    }, 0);
+  
+    const variancia = somaQuadrados / (n - 1);
     const desvioPadrao = Math.sqrt(variancia);
-
+  
     setResultados({ mediana, desvioPadrao });
   };
+  
+  
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-xl shadow p-6 space-y-4">

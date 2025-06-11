@@ -29,22 +29,22 @@ export default function DiscretosNaoAgrupados({ onVoltar }) {
 
   const calcularResultados = () => {
     if (!validarEntradas()) return;
-
+  
     const dados = [...valores].sort((a, b) => a - b);
     const n = dados.length;
-
+  
     const mediana =
       n % 2 === 0
         ? (dados[n / 2 - 1] + dados[n / 2]) / 2
         : dados[Math.floor(n / 2)];
-
+  
     const media = dados.reduce((acc, val) => acc + val, 0) / n;
-
-    const variancia = dados.reduce((acc, val) => acc + Math.pow(val - media, 2), 0) / n;
+  
+    const variancia = dados.reduce((acc, val) => acc + Math.pow(val - media, 2), 0) / (n - 1);
     const desvioPadrao = Math.sqrt(variancia);
-
+  
     setResultados({ mediana, desvioPadrao });
-  };
+  };  
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-xl shadow p-6 space-y-4">

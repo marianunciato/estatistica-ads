@@ -38,31 +38,30 @@ export default function Continuos({ onVoltar }) {
 
   const calcular = () => {
     if (!validarEntradas()) return;
-
+  
     const n = classes.reduce((acc, c) => acc + c.frequencia, 0);
     let acumulada = 0;
-
+  
     const comMediaClasse = classes.map((c) => ({
       ...c,
       media: (c.inferior + c.superior) / 2,
     }));
-
+  
     const tabela = comMediaClasse.map((c) => {
       acumulada += c.frequencia;
       return { ...c, acumulada };
     });
-
-    const mediaGeral =
-      tabela.reduce((acc, c) => acc + c.media * c.frequencia, 0) / n;
-
-    const variancia =
-      tabela.reduce(
-        (acc, c) => acc + c.frequencia * Math.pow(c.media - mediaGeral, 2),
-        0
-      ) / n;
-
+  
+    const mediaGeral = tabela.reduce((acc, c) => acc + c.media * c.frequencia, 0) / n;
+  
+    const somaQuadrados = tabela.reduce(
+      (acc, c) => acc + c.frequencia * Math.pow(c.media - mediaGeral, 2),
+      0
+    );
+  
+    const variancia = somaQuadrados / (n - 1);
     const desvioPadrao = Math.sqrt(variancia);
-
+  
     const metade = n / 2;
     const classeMediana = tabela.find((c) => c.acumulada >= metade);
     const i = tabela.indexOf(classeMediana);
@@ -71,9 +70,10 @@ export default function Continuos({ onVoltar }) {
     const mediana =
       classeMediana.inferior +
       ((metade - F) / classeMediana.frequencia) * h;
-
+  
     setResultados({ tabela, mediaGeral, variancia, desvioPadrao, mediana });
   };
+  
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-xl shadow p-6 space-y-4">
