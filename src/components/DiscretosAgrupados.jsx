@@ -12,6 +12,7 @@ export default function DiscretosAgrupados({ onVoltar }) {
       [campo]: parseFloat(valor),
     };
     setDados(novos);
+    setResultados(null);
   };
 
   const validarEntradas = () => {
@@ -21,11 +22,7 @@ export default function DiscretosAgrupados({ onVoltar }) {
     }
 
     for (const [i, d] of dados.entries()) {
-      if (
-        isNaN(d.valor) ||
-        isNaN(d.frequencia) ||
-        d.frequencia <= 0
-      ) {
+      if (isNaN(d.valor) || isNaN(d.frequencia) || d.frequencia <= 0) {
         alert(`Entrada inválida na linha ${i + 1}. Verifique se o valor é numérico e a frequência é maior que zero.`);
         return false;
       }
@@ -36,36 +33,36 @@ export default function DiscretosAgrupados({ onVoltar }) {
 
   const calcular = () => {
     if (!validarEntradas()) return;
-  
+
     const filtrados = dados.filter(d => !isNaN(d.valor) && !isNaN(d.frequencia));
     const n = filtrados.reduce((acc, d) => acc + d.frequencia, 0);
-  
+
     const ordenados = [...filtrados].sort((a, b) => a.valor - b.valor);
-  
+
     let acumulada = 0;
     const dist = ordenados.map((d) => {
       acumulada += d.frequencia;
       return { ...d, acumulada };
     });
-  
-    const metade = n / 2;
-    const classeMediana = dist.find(d => d.acumulada >= metade);
-    const mediana = classeMediana.valor;
-  
+
+    // Cálculo da mediana
+    const posMediana = n / 2;
+    let mediana = null;
+    for (const d of dist) {
+      if (d.acumulada >= posMediana) {
+        mediana = d.valor;
+        break;
+      }
+    }
+
     const media = filtrados.reduce((acc, d) => acc + d.valor * d.frequencia, 0) / n;
-  
-    const somaQuadrados = filtrados.reduce((acc, d) => {
-      const diff = d.valor - media;
-      return acc + d.frequencia * Math.pow(diff, 2);
-    }, 0);
-  
-    const variancia = somaQuadrados / (n - 1);
+
+    const variancia =
+      filtrados.reduce((acc, d) => acc + d.frequencia * Math.pow(d.valor - media, 2), 0) / n;
     const desvioPadrao = Math.sqrt(variancia);
-  
-    setResultados({ mediana, desvioPadrao });
+
+    setResultados({ mediana, media, desvioPadrao });
   };
-  
-  
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-xl shadow p-6 space-y-4">
@@ -79,6 +76,10 @@ export default function DiscretosAgrupados({ onVoltar }) {
           value={quantidade}
           onChange={(e) => {
             const qtd = parseInt(e.target.value);
+            if (isNaN(qtd) || qtd <= 0) {
+              alert("A quantidade deve ser maior que zero.");
+              return;
+            }
             if (qtd > 100) {
               alert("O máximo permitido é 100 valores.");
               return;
@@ -88,7 +89,6 @@ export default function DiscretosAgrupados({ onVoltar }) {
             setResultados(null);
           }}
           min="1"
-          max="100"
         />
       </label>
 
@@ -100,12 +100,14 @@ export default function DiscretosAgrupados({ onVoltar }) {
                 type="number"
                 placeholder={`Valor ${i + 1}`}
                 className="p-2 border rounded"
+                value={item.valor}
                 onChange={(e) => handleChange(i, "valor", e.target.value)}
               />
               <input
                 type="number"
                 placeholder={`Frequência ${i + 1}`}
                 className="p-2 border rounded mt-1"
+                value={item.frequencia}
                 onChange={(e) => handleChange(i, "frequencia", e.target.value)}
                 min="1"
               />
@@ -125,6 +127,7 @@ export default function DiscretosAgrupados({ onVoltar }) {
 
       {resultados && (
         <div className="bg-gray-100 p-4 rounded shadow">
+          <p><strong>Média:</strong> {resultados.media.toFixed(2)}</p>
           <p><strong>Mediana:</strong> {resultados.mediana.toFixed(2)}</p>
           <p><strong>Desvio Padrão:</strong> {resultados.desvioPadrao.toFixed(2)}</p>
         </div>

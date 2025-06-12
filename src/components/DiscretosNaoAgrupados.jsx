@@ -7,8 +7,9 @@ export default function DiscretosNaoAgrupados({ onVoltar }) {
 
   const handleInputChange = (index, valor) => {
     const novosValores = [...valores];
-    novosValores[index] = parseFloat(valor);
+    novosValores[index] = valor === "" ? "" : parseFloat(valor);
     setValores(novosValores);
+    setResultados(null);
   };
 
   const validarEntradas = () => {
@@ -18,7 +19,7 @@ export default function DiscretosNaoAgrupados({ onVoltar }) {
     }
 
     for (const [i, v] of valores.entries()) {
-      if (isNaN(v)) {
+      if (v === "" || isNaN(v)) {
         alert(`O valor ${i + 1} não é válido. Digite apenas números.`);
         return false;
       }
@@ -29,22 +30,22 @@ export default function DiscretosNaoAgrupados({ onVoltar }) {
 
   const calcularResultados = () => {
     if (!validarEntradas()) return;
-  
+
     const dados = [...valores].sort((a, b) => a - b);
     const n = dados.length;
-  
+
     const mediana =
       n % 2 === 0
         ? (dados[n / 2 - 1] + dados[n / 2]) / 2
         : dados[Math.floor(n / 2)];
-  
+
     const media = dados.reduce((acc, val) => acc + val, 0) / n;
-  
+
     const variancia = dados.reduce((acc, val) => acc + Math.pow(val - media, 2), 0) / (n - 1);
     const desvioPadrao = Math.sqrt(variancia);
-  
-    setResultados({ mediana, desvioPadrao });
-  };  
+
+    setResultados({ media, mediana, desvioPadrao });
+  };
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-xl shadow p-6 space-y-4">
@@ -58,6 +59,10 @@ export default function DiscretosNaoAgrupados({ onVoltar }) {
           value={quantidade}
           onChange={(e) => {
             const qtd = parseInt(e.target.value);
+            if (isNaN(qtd) || qtd <= 0) {
+              alert("A quantidade deve ser maior que zero.");
+              return;
+            }
             if (qtd > 100) {
               alert("Você pode inserir no máximo 100 valores.");
               return;
@@ -67,7 +72,6 @@ export default function DiscretosNaoAgrupados({ onVoltar }) {
             setResultados(null);
           }}
           min="1"
-          max="100"
         />
       </label>
 
@@ -79,6 +83,7 @@ export default function DiscretosNaoAgrupados({ onVoltar }) {
               type="number"
               className="p-2 border rounded"
               placeholder={`Valor ${i + 1}`}
+              value={val}
               onChange={(e) => handleInputChange(i, e.target.value)}
               min="-99999"
               max="99999"
@@ -98,6 +103,7 @@ export default function DiscretosNaoAgrupados({ onVoltar }) {
 
       {resultados && (
         <div className="bg-gray-100 p-4 rounded shadow">
+          <p><strong>Média:</strong> {resultados.media.toFixed(2)}</p>
           <p><strong>Mediana:</strong> {resultados.mediana.toFixed(2)}</p>
           <p><strong>Desvio Padrão:</strong> {resultados.desvioPadrao.toFixed(2)}</p>
         </div>

@@ -9,9 +9,10 @@ export default function Continuos({ onVoltar }) {
     const novas = [...classes];
     novas[index] = {
       ...novas[index],
-      [campo]: parseFloat(valor),
+      [campo]: valor === "" ? "" : parseFloat(valor),
     };
     setClasses(novas);
+    setResultados(null);
   };
 
   const validarEntradas = () => {
@@ -22,6 +23,9 @@ export default function Continuos({ onVoltar }) {
 
     for (const [i, c] of classes.entries()) {
       if (
+        c.inferior === "" ||
+        c.superior === "" ||
+        c.frequencia === "" ||
         isNaN(c.inferior) ||
         isNaN(c.superior) ||
         isNaN(c.frequencia) ||
@@ -38,30 +42,30 @@ export default function Continuos({ onVoltar }) {
 
   const calcular = () => {
     if (!validarEntradas()) return;
-  
+
     const n = classes.reduce((acc, c) => acc + c.frequencia, 0);
     let acumulada = 0;
-  
+
     const comMediaClasse = classes.map((c) => ({
       ...c,
       media: (c.inferior + c.superior) / 2,
     }));
-  
+
     const tabela = comMediaClasse.map((c) => {
       acumulada += c.frequencia;
       return { ...c, acumulada };
     });
-  
+
     const mediaGeral = tabela.reduce((acc, c) => acc + c.media * c.frequencia, 0) / n;
-  
+
     const somaQuadrados = tabela.reduce(
       (acc, c) => acc + c.frequencia * Math.pow(c.media - mediaGeral, 2),
       0
     );
-  
+
     const variancia = somaQuadrados / (n - 1);
     const desvioPadrao = Math.sqrt(variancia);
-  
+
     const metade = n / 2;
     const classeMediana = tabela.find((c) => c.acumulada >= metade);
     const i = tabela.indexOf(classeMediana);
@@ -70,10 +74,9 @@ export default function Continuos({ onVoltar }) {
     const mediana =
       classeMediana.inferior +
       ((metade - F) / classeMediana.frequencia) * h;
-  
+
     setResultados({ tabela, mediaGeral, variancia, desvioPadrao, mediana });
   };
-  
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-xl shadow p-6 space-y-4">
@@ -83,10 +86,14 @@ export default function Continuos({ onVoltar }) {
         Quantidade de classes:
         <input
           type="number"
-          className="w-full mt-1 p-2 border rounded"
+          className="w-full mt-1 p-2 border the user rounded"
           value={quantidade}
           onChange={(e) => {
             const qtd = parseInt(e.target.value);
+            if (isNaN(qtd) || qtd <= 0) {
+              alert("A quantidade deve ser maior que zero.");
+              return;
+            }
             if (qtd > 100) {
               alert("O máximo permitido é 100 classes.");
               return;
@@ -96,55 +103,56 @@ export default function Continuos({ onVoltar }) {
             setResultados(null);
           }}
           min="1"
-          max="100"
         />
       </label>
 
       {classes.length > 0 && (
-  <div className="w-full overflow-auto">
-    <table className="w-full table-auto border-collapse">
-      <thead>
-        <tr className="bg-gray-200 text-left">
-          <th className="p-2 border">Limite Inferior</th>
-          <th className="p-2 border">Limite Superior</th>
-          <th className="p-2 border">Frequência</th>
-        </tr>
-      </thead>
-      <tbody>
-        {classes.map((classe, i) => (
-          <tr key={i}>
-            <td className="p-1 border">
-              <input
-                type="number"
-                placeholder={`Inferior ${i + 1}`}
-                className="w-full p-2 border rounded"
-                onChange={(e) => handleChange(i, "inferior", e.target.value)}
-              />
-            </td>
-            <td className="p-1 border">
-              <input
-                type="number"
-                placeholder={`Superior ${i + 1}`}
-                className="w-full p-2 border rounded"
-                onChange={(e) => handleChange(i, "superior", e.target.value)}
-              />
-            </td>
-            <td className="p-1 border">
-              <input
-                type="number"
-                placeholder={`Frequência ${i + 1}`}
-                className="w-full p-2 border rounded"
-                onChange={(e) => handleChange(i, "frequencia", e.target.value)}
-                min="1"
-              />
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-)}
-
+        <div className="w-full overflow-auto">
+          <table className="w-full table-auto border-collapse">
+            <thead>
+              <tr className="bg-gray-200 text-left">
+                <th className="p-2 border">Limite Inferior</th>
+                <th className="p-2 border">Limite Superior</th>
+                <th className="p-2 border">Frequência</th>
+              </tr>
+            </thead>
+            <tbody>
+              {classes.map((classe, i) => (
+                <tr key={i}>
+                  <td className="p-1 border">
+                    <input
+                      type="number"
+                      placeholder={`Inferior ${i + 1}`}
+                      className="w-full p-2 border rounded"
+                      value={classe.inferior}
+                      onChange={(e) => handleChange(i, "inferior", e.target.value)}
+                    />
+                  </td>
+                  <td className="p-1 border">
+                    <input
+                      type="number"
+                      placeholder={`Superior ${i + 1}`}
+                      className="w-full p-2 border rounded"
+                      value={classe.superior}
+                      onChange={(e) => handleChange(i, "superior", e.target.value)}
+                    />
+                  </td>
+                  <td className="p-1 border">
+                    <input
+                      type="number"
+                      placeholder={`Frequência ${i + 1}`}
+                      className="w-full p-2 border rounded"
+                      value={classe.frequencia}
+                      onChange={(e) => handleChange(i, "frequencia", e.target.value)}
+                      min="1"
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {classes.length > 0 && (
         <button
@@ -182,9 +190,10 @@ export default function Continuos({ onVoltar }) {
           </table>
 
           <div className="mt-4">
+            <p><strong>Média:</strong> {resultados.mediaGeral.toFixed(2)}</p>
             <p><strong>Mediana:</strong> {resultados.mediana.toFixed(2)}</p>
-            <p><strong>Desvio Padrão:</strong> {resultados.desvioPadrao.toFixed(2)}</p>
             <p><strong>Variância:</strong> {resultados.variancia.toFixed(2)}</p>
+            <p><strong>Desvio Padrão:</strong> {resultados.desvioPadrao.toFixed(2)}</p>
           </div>
         </div>
       )}
